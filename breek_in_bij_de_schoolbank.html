@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breek in bij de schoolbank - Educatieve Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-green: #22c55e;
+            --neon-red: #ef4444;
+            --metal-dark: #050608;
+            --metal-light: #12141c;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--metal-dark);
+            color: #f1f5f9;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .font-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .safe-container {
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--metal-light) 0%, #030406 90%);
+            border: 6px solid #1e293b;
+            box-shadow: 0 0 35px rgba(0,0,0,0.95), inset 0 0 25px rgba(0,0,0,0.9);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .safe-dial {
+            width: 125px;
+            height: 125px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e202e 0%, #0b0c10 100%);
+            border: 3px dashed #475569;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
+            position: absolute;
+        }
+
+        .timer-display {
+            font-size: 2.1rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 14px rgba(34, 197, 94, 0.6);
+            z-index: 10;
+            position: relative;
+        }
+
+        .timer-warning {
+            color: var(--neon-red);
+            text-shadow: 0 0 14px rgba(239, 68, 68, 0.7);
+            animation: pulse-fast 0.8s infinite;
+        }
+
+        @keyframes pulse-fast {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.06); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-9px); }
+            40%, 80% { transform: translateX(9px); }
+        }
+
+        .shake-animation {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .status-light {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .status-light.active {
+            background-color: var(--neon-green);
+            border-color: #86efac;
+            box-shadow: 0 0 15px var(--neon-green), inset 0 1px 3px rgba(255,255,255,0.9);
+        }
+
+        .bg-glass {
+            background: rgba(13, 15, 23, 0.96);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .scoreboard {
+            max-height: 190px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #475569 #0f172a;
+        }
+        
+        .scoreboard::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .scoreboard::-webkit-scrollbar-track {
+            background: #0f172a; 
+            border-radius: 4px;
+        }
+        
+        .scoreboard::-webkit-scrollbar-thumb {
+            background-color: #475569; 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6">
+
+    <div id="app-container" class="w-full max-w-2xl relative">
+        
+        <div id="menu-screen" class="bg-glass rounded-3xl p-6 sm:p-8 shadow-2xl text-center">
+            <div class="mb-5">
+                <span class="text-xs font-bold tracking-widest text-emerald-400 bg-emerald-950 px-3.5 py-1 rounded-full border border-emerald-800/60 uppercase">Educatieve Escape Game</span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-3 mb-2 tracking-wide font-tech">BREEK IN BIJ DE SCHOOLBANK</h1>
+                <p class="text-gray-300 text-sm sm:text-base leading-relaxed">Kraak de kluis binnen 5 minuten door slimme vragen en diverse vakpuzzels op te lossen!</p>
+            </div>
+            
+            <!-- Highscores Box -->
+            <div class="mb-5 bg-slate-900/90 p-4 rounded-2xl border border-slate-800 text-left shadow-inner">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                        <span>🏆</span> Highscores
+                    </h2>
+                    <button onclick="clearScores()" class="text-xs text-rose-400 hover:text-rose-300 font-medium transition">Wis scores</button>
+                </div>
+                <div id="score-list" class="scoreboard space-y-1.5 text-sm text-gray-200 pr-1">
+                    <p class="text-gray-400 italic text-center py-3 text-xs">Nog geen scores geregistreerd.</p>
+                </div>
+            </div>
+
+            <!-- Difficulty Picker -->
+            <div class="mb-5 text-left bg-slate-900/90 p-4 sm:p-5 rounded-2xl border border-slate-800">
+                <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2.5">1. Kies je niveau:</h2>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="difficulty" value="makkelijk" class="peer hidden" checked>
+                        <div class="p-3 text-center rounded-xl border border-slate-700 text-gray-300 font-medium peer-checked:bg-emerald-950 peer-checked:border-emerald-500 peer-checked:text-emerald-300 transition shadow-sm text-sm">
+                            Makkelijk
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="difficulty" value="gemiddeld" class="peer hidden">
+                        <div class="p-3 text-center rounded-xl border border-slate-700 text-gray-300 font-medium peer-checked:bg-amber-950 peer-checked:border-amber-500 peer-checked:text-amber-300 transition shadow-sm text-sm">
+                            Gemiddeld
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="difficulty" value="moeilijk" class="peer hidden">
+                        <div class="p-3 text-center rounded-xl border border-slate-700 text-gray-300 font-medium peer-checked:bg-rose-950 peer-checked:border-rose-500 peer-checked:text-rose-300 transition shadow-sm text-sm">
+                            Moeilijk
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Subjects Picker -->
+            <div class="mb-6 text-left bg-slate-900/90 p-4 sm:p-5 rounded-2xl border border-slate-800">
+                <div class="flex justify-between items-center mb-2.5">
+                    <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider">2. Selecteer vakken:</h2>
+                    <span id="subject-error" class="hidden text-rose-400 text-xs font-semibold animate-pulse">Selecteer minstens 1 vak!</span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <label class="flex items-center space-x-3 cursor-pointer group p-2 rounded-xl hover:bg-slate-800/60 transition">
+                        <input type="checkbox" value="wiskunde" class="subject-cb form-checkbox h-4 w-4 text-indigo-500 rounded focus:ring-indigo-400 bg-slate-800 border-slate-700" checked>
+                        <span class="text-gray-200 group-hover:text-white text-sm font-medium transition-colors">📐 Wiskunde & Rekenen</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer group p-2 rounded-xl hover:bg-slate-800/60 transition">
+                        <input type="checkbox" value="geschiedenis" class="subject-cb form-checkbox h-4 w-4 text-indigo-500 rounded focus:ring-indigo-400 bg-slate-800 border-slate-700" checked>
+                        <span class="text-gray-200 group-hover:text-white text-sm font-medium transition-colors">🏛️ Geschiedenis</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer group p-2 rounded-xl hover:bg-slate-800/60 transition">
+                        <input type="checkbox" value="aardrijkskunde" class="subject-cb form-checkbox h-4 w-4 text-indigo-500 rounded focus:ring-indigo-400 bg-slate-800 border-slate-700" checked>
+                        <span class="text-gray-200 group-hover:text-white text-sm font-medium transition-colors">🌍 Aardrijkskunde</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer group p-2 rounded-xl hover:bg-slate-800/60 transition">
+                        <input type="checkbox" value="wetenschap" class="subject-cb form-checkbox h-4 w-4 text-indigo-500 rounded focus:ring-indigo-400 bg-slate-800 border-slate-700" checked>
+                        <span class="text-gray-200 group-hover:text-white text-sm font-medium transition-colors">🔬 Natuurkunde & Wetenschap</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer group p-2 rounded-xl hover:bg-slate-800/60 transition sm:col-span-2">
+                        <input type="checkbox" value="taal" class="subject-cb form-checkbox h-4 w-4 text-indigo-500 rounded focus:ring-indigo-400 bg-slate-800 border-slate-700" checked>
+                        <span class="text-gray-200 group-hover:text-white text-sm font-medium transition-colors">📖 Nederlandse Taal & Grammatica</span>
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-2xl shadow-xl shadow-indigo-600/25 transform transition active:scale-98 text-base tracking-wide">
+                START INBRAAKMISSIE 🚀
+            </button>
+        </div>
+
+        <div id="game-screen" class="hidden flex-col items-center">
+            
+            <div class="w-full flex justify-between items-center mb-4 px-2">
+                <button onclick="quitGame()" class="text-xs sm:text-sm text-gray-300 hover:text-white transition flex items-center gap-1 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700">← Stoppen</button>
+                <div class="text-right">
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Kluisstatus</p>
+                    <p class="text-xs font-tech text-emerald-400 font-semibold">10 Codes Vereist</p>
+                </div>
+            </div>
+
+            <!-- Safe Visual Dial -->
+            <div id="safe-wrapper" class="safe-container mb-5">
+                <div id="safe-dial" class="safe-dial"></div>
+                <div id="timer-display" class="font-tech timer-display">05:00</div>
+            </div>
+
+            <!-- Progress Lights Indicator -->
+            <div class="flex justify-center flex-wrap gap-2 mb-5 bg-slate-900/90 px-4 py-3 rounded-2xl border border-slate-800 shadow-inner max-w-md w-full" id="progress-lights">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Question & Puzzle Card -->
+            <div class="w-full bg-glass rounded-3xl p-6 sm:p-7 shadow-2xl border-t-2 border-indigo-500">
+                <div class="flex justify-between items-center mb-3">
+                    <span id="question-subject" class="text-xs font-bold uppercase tracking-wider text-indigo-300 bg-indigo-950 px-3.5 py-1 rounded-full border border-indigo-800/60">Vak</span>
+                    <span id="feedback-message" class="text-xs font-bold font-tech opacity-0 transition-opacity duration-300"></span>
+                </div>
+                <h3 id="question-text" class="text-lg sm:text-xl font-bold text-white mb-5 leading-snug min-h-[50px]">Laden...</h3>
+                
+                <!-- Dynamic Interactive Workspace -->
+                <div id="interactive-content"></div>
+            </div>
+
+        </div>
+
+        <div id="result-screen" class="hidden bg-glass rounded-3xl p-6 sm:p-8 shadow-2xl text-center border-2 border-emerald-500/40">
+            <h2 id="result-title" class="text-4xl sm:text-5xl font-extrabold mb-3 font-tech text-emerald-400">KLUIS GEKRAAKT! 🎉</h2>
+            <p id="result-message" class="text-gray-300 text-sm sm:text-base mb-6 leading-relaxed">Gefeliciteerd! Je hebt alle codes opgelost en de kluis met succes geopend.</p>
+            
+            <div class="bg-slate-900/90 p-4 sm:p-5 rounded-2xl border border-slate-800 mb-6 grid grid-cols-2 gap-4 text-center">
+                <div>
+                    <span class="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 block font-bold">Behaalde Score</span>
+                    <span id="stat-score" class="text-2xl sm:text-3xl font-tech text-emerald-400 font-bold">0</span>
+                </div>
+                <div>
+                    <span class="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 block font-bold">Resterende Tijd</span>
+                    <span id="stat-time" class="text-2xl sm:text-3xl font-tech text-indigo-400 font-bold">00:00</span>
+                </div>
+                <div>
+                    <span class="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 block font-bold">Gemaakte Fouten</span>
+                    <span id="stat-mistakes" class="text-xl sm:text-2xl font-tech text-rose-400 font-bold">0</span>
+                </div>
+                <div>
+                    <span class="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 block font-bold">Niveau</span>
+                    <span id="stat-diff" class="text-xl sm:text-2xl font-tech text-amber-400 font-bold capitalize">Makkelijk</span>
+                </div>
+            </div>
+
+            <button onclick="resetToMenu()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold rounded-2xl shadow-xl shadow-indigo-600/25 transform transition active:scale-98 text-base tracking-wide">
+                TERUG NAAR HOOFDMENU 🏠
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Uitgebreide database met unieke vraag- en puzzelsoorten per niveau en vak
+        const questionDatabase = [
+            // --- WISKUNDE & REKENEN ---
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'makkelijk', text: 'Wat is de exacte uitkomst van 45 + 28?', options: ['73', '71', '83', '63'], answer: '73' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'makkelijk', text: 'Hoeveel is 35% van 200?', options: ['70', '60', '75', '80'], answer: '70' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'makkelijk', text: 'Wat is de breuk 3/4 uitgedrukt in een decimaal getal?', options: ['0.75', '0.65', '0.80', '0.50'], answer: '0.75' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'makkelijk', text: 'Wat is de uitkomst van 12 × 8?', options: ['96', '88', '104', '86'], answer: '96' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'makkelijk', text: 'Wat is de wortel van 81?', options: ['9', '8', '7', '11'], answer: '9' },
+
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'gemiddeld', text: 'Wat is de uitkomst van 14 × 13?', options: ['182', '168', '156', '172'], answer: '182' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'gemiddeld', text: 'Los de bewerking op volgens de rekenregels: 120 / (4 + 6) × 2', options: ['24', '12', '60', '48'], answer: '24' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'gemiddeld', text: 'Wat is de omtrek van een cirkel met een straal van 7 cm? (Gebruik π ≈ 3.14)', options: ['43.96 cm', '21.98 cm', '153.86 cm', '28.00 cm'], answer: '43.96 cm' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'gemiddeld', text: 'Wat is 15% van 340?', options: ['51', '45', '55', '48'], answer: '51' },
+            {
+                type: 'graph_puzzle',
+                subject: 'wiskunde',
+                difficulty: 'gemiddeld',
+                text: 'X-T Grafiek Puzzel: Een voertuig rijdt met een constante snelheid van 15 m/s. Wat is de afgelegde afstand na 4 seconden?',
+                targetTime: 4,
+                targetDistance: 60,
+                correctTolerance: 4
+            },
+
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'moeilijk', text: 'Wat is de wortel van 225 plus 15 in het kwadraat?', options: ['240', '230', '150', '225'], answer: '240' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'moeilijk', text: 'Los op voor x als 3x - 7 = 20:', options: ['9', '8', '7', '10'], answer: '9' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'moeilijk', text: 'Wat is de inhoud van een cilinder met straal 3 cm en hoogte 10 cm? (Gebruik π ≈ 3.14)', options: ['282.6 cm³', '188.4 cm³', '94.2 cm³', '314.0 cm³'], answer: '282.6 cm³' },
+            { type: 'quiz', subject: 'wiskunde', difficulty: 'moeilijk', text: 'Wat is de waarde van 2 tot de macht 8?', options: ['256', '128', '512', '64'], answer: '256' },
+            {
+                type: 'graph_puzzle',
+                subject: 'wiskunde',
+                difficulty: 'moeilijk',
+                text: 'Versnelling Puzzel: Een fietser fietst met een constante snelheid van 8 m/s gedurende 6 seconden. Wat is de totale afgelegde afstand in meters?',
+                targetTime: 6,
+                targetDistance: 48,
+                correctTolerance: 3
+            },
+
+            // --- GESCHIEDENIS ---
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'makkelijk', text: 'In welk jaar begon de Tachtigjarige Oorlog officieel met de Slag bij Heiligerlee?', options: ['1568', '1648', '1515', '1602'], answer: '1568' },
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'makkelijk', text: 'Wie schreef het wereldberoemde dagboek ondergedoken in het Achterhuis te Amsterdam?', options: ['Anne Frank', 'Aletta Jacobs', 'Coline Grüter', 'Johanna Westerdijk'], answer: 'Anne Frank' },
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'makkelijk', text: 'Welke ontdekkingsreiziger ontdekte in 1492 per ongeluk Amerika?', options: ['Christoffel Columbus', 'Vasco da Gama', 'Magellaan', 'Amerigo Vespucci'], answer: 'Christoffel Columbus' },
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'makkelijk', text: 'In welke eeuw vonden de Gouden Eeuw en de schilderijen van Rembrandt plaats?', options: ['17e eeuw', '16e eeuw', '18e eeuw', '15e eeuw'], answer: '17e eeuw' },
+
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'gemiddeld', text: 'In welk jaar werd de Republiek der Verenigde Nederlanden erkend bij de Vrede van Münster?', options: ['1648', '1588', '1795', '1813'], answer: '1648' },
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'gemiddeld', text: 'Welke Franse keizer kroonde zichzelf in 1804 en heerste over een groot deel van Europa?', options: ['Napoleon Bonaparte', 'Lodewijk XIV', 'Karel de Grote', 'Robespierre'], answer: 'Napoleon Bonaparte' },
+            {
+                type: 'timeline_puzzle',
+                subject: 'geschiedenis',
+                difficulty: 'gemiddeld',
+                text: 'Historisch Tijdvak: Koppel het juiste jaartal aan elke historische gebeurtenis.',
+                events: [
+                    { event: 'Oprichting van de VOC', year: '1602' },
+                    { event: 'Begin Tachtigjarige Oorlog', year: '1568' },
+                    { event: 'De Watersnoodramp', year: '1953' }
+                ]
+            },
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'gemiddeld', text: 'Welk verdrag maakte in 1919 een officieel einde aan de Eerste Wereldoorlog?', options: ['Verdrag van Versailles', 'Verdrag van Wenen', 'Vrede van Utrecht', 'Verdrag van Parijs'], answer: 'Verdrag van Versailles' },
+
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'moeilijk', text: 'In welk jaar viel de Berlijnse Muur, wat het einde van de Koude Oorlog inluidde?', options: ['1989', '1991', '1987', '1990'], answer: '1989' },
+            { type: 'quiz', subject: 'geschiedenis', difficulty: 'moeilijk', text: 'Tijdens welke eeuw vond de Franse Revolutie plaats?', options: ['18e eeuw (1789)', '17e eeuw (1688)', '19e eeuw (1815)', '16e eeuw (1585)'], answer: '18e eeuw (1789)' },
+            {
+                type: 'timeline_puzzle',
+                subject: 'geschiedenis',
+                difficulty: 'moeilijk',
+                text: 'Wereldgeschiedenis Tijdlijn: Koppel de juiste historische gebeurtenis aan het juiste jaartal.',
+                events: [
+                    { event: 'Eerste landing op de Maan', year: '1969' },
+                    { event: 'Begin Eerste Wereldoorlog', year: '1914' },
+                    { event: 'Val Romeinse Rijk (Westen)', year: '476' }
+                ]
+            },
+
+            // --- AARDRIJKSKUNDE ---
+            { type: 'quiz', subject: 'aardrijkskunde', difficulty: 'makkelijk', text: 'Wat is de officiële hoofdstad van Canada?', options: ['Ottawa', 'Toronto', 'Vancouver', 'Montreal'], answer: 'Ottawa' },
+            { type: 'quiz', subject: 'aardrijkskunde', difficulty: 'makkelijk', text: 'Welke oceaan bevindt zich ten oosten van Afrika en ten westen van Australië?', options: ['Indische Oceaan', 'Atlantische Oceaan', 'Stille Oceaan', 'Noordelijke IJszee'], answer: 'Indische Oceaan' },
+            { type: 'quiz', subject: 'aardrijkskunde', difficulty: 'makkelijk', text: 'Welk land heeft de meeste inwoners ter wereld?', options: ['China / India', 'Verenigde Staten', 'Brazilië', 'Rusland'], answer: 'China / India' },
+
+            { type: 'quiz', subject: 'aardrijkskunde', difficulty: 'gemiddeld', text: 'Wat is het grootste land ter wereld gemeten naar landoppervlakte?', options: ['Rusland', 'Canada', 'China', 'Verenigde Staten'], answer: 'Rusland' },
+            { type: 'quiz', subject: 'aardrijkskunde', difficulty: 'gemiddeld', text: 'Door welke continenten loopt de evenaar NIET?', options: ['Europa', 'Afrika', 'Zuid-Amerika', 'Azië'], answer: 'Europa' },
+            {
+                type: 'match_puzzle',
+                subject: 'aardrijkskunde',
+                difficulty: 'gemiddeld',
+                text: 'Geografie Koppelopdracht I: Koppel elk land aan de juiste hoofdstad.',
+                pairs: [
+                    { item: 'Frankrijk', match: 'Parijs' },
+                    { item: 'Italië', match: 'Rome' },
+                    { item: 'Spanje', match: 'Madrid' }
+                ]
+            },
+
+            { type: 'quiz', subject: 'aardrijkskunde', difficulty: 'moeilijk', text: 'Welke rivier is de langste rivier ter wereld?', options: ['Nijl', 'Amazone', 'Yangtze', 'Mississippi'], answer: 'Nijl' },
+            {
+                type: 'match_puzzle',
+                subject: 'aardrijkskunde',
+                difficulty: 'moeilijk',
+                text: 'Geografie Koppelopdracht II: Koppel elk land aan de juiste hoofdstad.',
+                pairs: [
+                    { item: 'Australië', match: 'Canberra' },
+                    { item: 'Japan', match: 'Tokio' },
+                    { item: 'Brazilië', match: 'Brasilia' }
+                ]
+            },
+            { type: 'quiz', subject: 'aardrijkskunde', difficulty: 'moeilijk', text: 'Welke woestijn is de droogste niet-polaire woestijn op aarde, gelegen in Zuid-Amerika?', options: ['Atacama', 'Sahara', 'Gobi', 'Kalahari'], answer: 'Atacama' },
+
+            // --- NATUURKUNDE & WETENSCHAP ---
+            { type: 'quiz', subject: 'wetenschap', difficulty: 'makkelijk', text: 'Bij welke temperatuur in graden Celsius smelt zuiver ijs onder normale luchtdruk?', options: ['0 °C', '4 °C', '-1 °C', '100 °C'], answer: '0 °C' },
+            { type: 'quiz', subject: 'wetenschap', difficulty: 'makkelijk', text: 'Welk gas ademen mensen hoofdzakelijk uit als afvalproduct van de ademhaling?', options: ['Koolstofdioxide', 'Zuurstof', 'Stikstof', 'Waterstof'], answer: 'Koolstofdioxide' },
+            { type: 'quiz', subject: 'wetenschap', difficulty: 'makkelijk', text: 'Wat is de scheikundige notatie voor het element goud?', options: ['Au', 'Ag', 'Fe', 'Cu'], answer: 'Au' },
+
+            { type: 'quiz', subject: 'wetenschap', difficulty: 'gemiddeld', text: 'Welk subatomair deeltje bevindt zich in de kern van een atoom en heeft een positieve elektrische lading?', options: ['Proton', 'Elektron', 'Neutron', 'Foton'], answer: 'Proton' },
+            {
+                type: 'circuit_puzzle',
+                subject: 'wetenschap',
+                difficulty: 'gemiddeld',
+                text: 'Schakeling Berekening: Je hebt een stroomkring met een spanningsbron van 12V en twee identieke weerstanden van elk 6 Ohm in serie. Wat is de totale stroomsterkte (in Ampère)?',
+                correctCurrent: 1.0,
+                tolerance: 0.1
+            },
+            {
+                type: 'molecule_puzzle',
+                subject: 'wetenschap',
+                difficulty: 'gemiddeld',
+                text: 'Molecuulbouw: Gebruik de werkbank om de juiste atomen toe te voegen voor een belangrijk vloeibaar waterstof-zuurstof molecuul dat leven ondersteunt.',
+                targetMolecule: 'H2O',
+                requiredAtoms: { H: 2, O: 1, C: 0 }
+            },
+            { type: 'quiz', subject: 'wetenschap', difficulty: 'gemiddeld', text: 'Wat is de snelheid van het licht in vacuüm ongeveer in kilometers per seconde?', options: ['300.000 km/s', '150.000 km/s', '3.000 km/s', '1.080.000 km/s'], answer: '300.000 km/s' },
+
+            { type: 'quiz', subject: 'wetenschap', difficulty: 'moeilijk', text: 'Wat is de eenheid van elektrische weerstand in het SI-stelsel?', options: ['Ohm', 'Volt', 'Ampère', 'Watt'], answer: 'Ohm' },
+            {
+                type: 'circuit_puzzle',
+                subject: 'wetenschap',
+                difficulty: 'moeilijk',
+                text: 'Parallelle Schakeling: Een parallelle schakeling heeft twee weerstanden van 12 Ohm en een spanningsbron van 24V. Bereken de totale stroomsterkte door de hoofdleiding in Ampère.',
+                correctCurrent: 4.0,
+                tolerance: 0.2
+            },
+            {
+                type: 'molecule_puzzle',
+                subject: 'wetenschap',
+                difficulty: 'moeilijk',
+                text: 'Molecuulbouw: Bouw het juiste aantal atomen om een gasvormig uitstootmolecuul te vormen dat door planten wordt opgenomen.',
+                targetMolecule: 'CO2',
+                requiredAtoms: { H: 0, O: 2, C: 1 }
+            },
+            { type: 'quiz', subject: 'wetenschap', difficulty: 'moeilijk', text: 'Welke wet van Newton stelt dat actie gelijk is aan reactie?', options: ['Derde wet', 'Eerste wet', 'Tweede wet', 'Zwaartekrachtwet'], answer: 'Derde wet' },
+
+            // --- NEDERLANDSE TAAL & GRAMMATICA ---
+            { type: 'quiz', subject: 'taal', difficulty: 'makkelijk', text: 'Wat is de juiste spelling van het voltooid deelwoord van het werkwoord "gebeuren"?', options: ['Gebeurd', 'Gebeurt', 'Gabeurd', 'Gebeurdt'], answer: 'Gebeurd' },
+            { type: 'quiz', subject: 'taal', difficulty: 'makkelijk', text: 'Wat is de verleden tijd van het sterke werkwoord "lopen"?', options: ['Liep', 'Geloopte', 'Liepde', 'Gelopen'], answer: 'Liep' },
+            {
+                type: 'order_puzzle',
+                subject: 'taal',
+                difficulty: 'makkelijk',
+                text: 'Taalpuzzel I: Klik op de woorden in de juiste volgorde voor een correcte zin:',
+                words: ['kunnen', 'wij', 'deze', 'lastige', 'kluis', 'openen'],
+                correctOrder: ['wij', 'kunnen', 'deze', 'lastige', 'kluis', 'openen']
+            },
+
+            { type: 'quiz', subject: 'taal', difficulty: 'gemiddeld', text: 'Welk zinsdeel is in deze zin het lijdend voorwerp: "De monteur repareerde de oude rode auto snel."', options: ['de oude rode auto', 'de monteur', 'repareerde', 'snel'], answer: 'de oude rode auto' },
+            {
+                type: 'order_puzzle',
+                subject: 'taal',
+                difficulty: 'gemiddeld',
+                text: 'Taalpuzzel II: Zet de volgende woorden in de juiste volgorde voor een correcte zin:',
+                words: ['vandaag', 'hebben', 'wij', 'een', 'moeilijke', 'puzzel', 'opgelost'],
+                correctOrder: ['wij', 'hebben', 'vandaag', 'een', 'moeilijke', 'puzzel', 'opgelost']
+            },
+            { type: 'quiz', subject: 'taal', difficulty: 'gemiddeld', text: 'Wat is de correcte verdubbeling of verenkeling in het meervoud van "cadeau"?', options: ['cadeaus', 'cadeaux', 'cadeauws', 'cadeaum'], answer: 'cadeaus' },
+
+            { type: 'quiz', subject: 'taal', difficulty: 'moeilijk', text: 'Hoe schrijf je de overtreffende trap van het bijvoeglijk naamwoord "ingewikkeld"?', options: ['ingewikkeldst', 'meest ingewikkeldst', 'ergst ingewikkeld', 'ingewikkelder'], answer: 'ingewikkeldst' },
+            { type: 'quiz', subject: 'taal', difficulty: 'moeilijk', text: 'Wat betekent het Latijnse leenwoord "pro bono"?', options: ['Gratis / voor het algemeen belang', 'Voor de vorm', 'Na de feiten', 'Zonder uitzondering'], answer: 'Gratis / voor het algemeen belang' },
+            {
+                type: 'order_puzzle',
+                subject: 'taal',
+                difficulty: 'moeilijk',
+                text: 'Taalpuzzel III: Zet de volgende zinsdelen in de juiste volgorde voor een correcte zin:',
+                words: ['omdat', 'de', 'tijd', 'snel', 'verloopt', 'moeten', 'wij', 'opschieten'],
+                correctOrder: ['omdat', 'de', 'tijd', 'snel', 'verloopt', 'moeten', 'wij', 'opschieten']
+            }
+        ];
+
+        let gameTime = 300; // 5 minuten
+        let timerInterval;
+        let activeQuestions = [];
+        let currentQuestion = null;
+        let requiredCodes = 10;
+        let codesCracked = 0;
+        let mistakes = 0;
+        let dialRotation = 0;
+        let isAnimating = false;
+        let currentDifficulty = 'makkelijk';
+        
+        let highscores = JSON.parse(localStorage.getItem('kluiskrakerScoresNewV7')) || [];
+
+        const screens = {
+            menu: document.getElementById('menu-screen'),
+            game: document.getElementById('game-screen'),
+            result: document.getElementById('result-screen')
+        };
+        const timerDisplay = document.getElementById('timer-display');
+        const progressLights = document.getElementById('progress-lights');
+        const questionText = document.getElementById('question-text');
+        const interactiveContent = document.getElementById('interactive-content');
+        const questionSubject = document.getElementById('question-subject');
+        const safeDial = document.getElementById('safe-dial');
+        const safeWrapper = document.getElementById('safe-wrapper');
+        const feedbackMessage = document.getElementById('feedback-message');
+        
+        renderScores();
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+            if (screenName === 'menu') {
+                renderScores();
+            }
+        }
+
+        function startGame() {
+            const checkboxes = document.querySelectorAll('.subject-cb:checked');
+            if (checkboxes.length === 0) {
+                document.getElementById('subject-error').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('subject-error').classList.add('hidden');
+
+            const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
+            currentDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+            
+            // Filter vragen op geselecteerde vakken en gekozen niveau
+            let filtered = questionDatabase.filter(q => 
+                selectedSubjects.includes(q.subject) && q.difficulty === currentDifficulty
+            );
+            
+            if (filtered.length < requiredCodes) {
+                let fallback = questionDatabase.filter(q => selectedSubjects.includes(q.subject) && q.difficulty !== currentDifficulty);
+                shuffleArray(fallback);
+                filtered = [...filtered, ...fallback];
+            }
+            
+            shuffleArray(filtered);
+            
+            activeQuestions = filtered.slice(0, requiredCodes);
+            if (activeQuestions.length < requiredCodes) {
+                while(activeQuestions.length < requiredCodes && filtered.length > 0) {
+                    activeQuestions.push(filtered[Math.floor(Math.random() * filtered.length)]);
+                }
+            }
+
+            gameTime = 300;
+            codesCracked = 0;
+            mistakes = 0;
+            dialRotation = 0;
+            safeDial.style.transform = `rotate(0deg)`;
+            
+            setupProgressLights();
+            showScreen('game');
+            updateTimerDisplay();
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(gameTick, 1000);
+
+            loadNextQuestion();
+        }
+
+        function quitGame() {
+            clearInterval(timerInterval);
+            resetToMenu();
+        }
+
+        function resetToMenu() {
+            showScreen('menu');
+        }
+
+        function gameTick() {
+            if (gameTime > 0) {
+                gameTime--;
+                updateTimerDisplay();
+                if (gameTime <= 30) {
+                    timerDisplay.classList.add('timer-warning');
+                } else {
+                    timerDisplay.classList.remove('timer-warning');
+                }
+            } else {
+                endGame(false);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(Math.max(gameTime, 0) / 60);
+            const seconds = Math.max(gameTime, 0) % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function setupProgressLights() {
+            progressLights.innerHTML = '';
+            for (let i = 0; i < requiredCodes; i++) {
+                const light = document.createElement('div');
+                light.className = 'status-light';
+                light.id = `light-${i}`;
+                progressLights.appendChild(light);
+            }
+        }
+
+        function loadNextQuestion() {
+            if (activeQuestions.length === 0) {
+                endGame(true);
+                return;
+            }
+
+            currentQuestion = activeQuestions.pop();
+
+            const emojis = {
+                'wiskunde': '📐',
+                'geschiedenis': '🏛️',
+                'aardrijkskunde': '🌍',
+                'wetenschap': '🔬',
+                'taal': '📖'
+            };
+            
+            questionSubject.textContent = `${emojis[currentQuestion.subject] || '🧩'} ${currentQuestion.subject.toUpperCase()} (${currentQuestion.difficulty.toUpperCase()})`;
+            questionText.textContent = currentQuestion.text;
+
+            interactiveContent.innerHTML = '';
+
+            if (currentQuestion.type === 'quiz' || !currentQuestion.type) {
+                renderQuizAnswers();
+            } else if (currentQuestion.type === 'circuit_puzzle') {
+                renderCircuitPuzzle();
+            } else if (currentQuestion.type === 'graph_puzzle') {
+                renderGraphPuzzle();
+            } else if (currentQuestion.type === 'order_puzzle') {
+                renderOrderPuzzle();
+            } else if (currentQuestion.type === 'timeline_puzzle') {
+                renderTimelinePuzzle();
+            } else if (currentQuestion.type === 'match_puzzle') {
+                renderMatchPuzzle();
+            } else if (currentQuestion.type === 'molecule_puzzle') {
+                renderMoleculePuzzle();
+            }
+        }
+
+        // --- RENDERERS VOOR VERSCHILLENDE SPELTYPEN ---
+
+        function renderQuizAnswers() {
+            let answers = [...currentQuestion.options];
+            shuffleArray(answers);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3.5';
+
+            answers.forEach(answer => {
+                const btn = document.createElement('button');
+                btn.className = 'p-4 bg-slate-900/90 hover:bg-slate-800 text-white rounded-2xl border border-slate-700/80 transition shadow-md text-left text-sm sm:text-base font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500';
+                btn.textContent = answer;
+                btn.onclick = () => handleAnswerResult(answer === currentQuestion.answer, btn);
+                grid.appendChild(btn);
+            });
+            interactiveContent.appendChild(grid);
+        }
+
+        function renderCircuitPuzzle() {
+            const container = document.createElement('div');
+            container.className = 'space-y-4 text-center';
+
+            const instructions = document.createElement('div');
+            instructions.className = 'text-xs text-indigo-300 text-center bg-indigo-950/60 p-3 rounded-xl border border-indigo-900/60 font-medium';
+            instructions.textContent = '💡 Pas de schuifregelaar aan om de berekende stroomsterkte (I) in Ampère correct in te stellen op basis van de wet van Ohm.';
+
+            const sliderContainer = document.createElement('div');
+            sliderContainer.className = 'bg-slate-900/90 p-5 rounded-2xl border border-slate-800 space-y-3';
+
+            const valueDisplay = document.createElement('div');
+            valueDisplay.className = 'text-3xl font-tech text-indigo-400 font-bold';
+            valueDisplay.textContent = '2.0 A';
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = '0';
+            slider.max = '10';
+            slider.step = '0.1';
+            slider.value = '2.0';
+            slider.className = 'w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500';
+            
+            slider.oninput = () => {
+                valueDisplay.textContent = `${parseFloat(slider.value).toFixed(1)} A`;
+            };
+
+            sliderContainer.appendChild(valueDisplay);
+            sliderContainer.appendChild(slider);
+
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition text-base';
+            checkBtn.textContent = 'Verifieer Schakeling Berekening ⚡';
+            checkBtn.onclick = () => {
+                let val = parseFloat(slider.value);
+                let diff = Math.abs(val - currentQuestion.correctCurrent);
+                let correct = diff <= currentQuestion.tolerance;
+                handleAnswerResult(correct, checkBtn);
+            };
+
+            container.appendChild(instructions);
+            container.appendChild(sliderContainer);
+            container.appendChild(checkBtn);
+            interactiveContent.appendChild(container);
+        }
+
+        function renderMoleculePuzzle() {
+            const container = document.createElement('div');
+            container.className = 'space-y-4 text-center';
+
+            const instructions = document.createElement('p');
+            instructions.className = 'text-xs text-indigo-300 bg-indigo-950/60 p-3 rounded-xl border border-indigo-900/60 font-medium';
+            instructions.textContent = `Gebruik de knoppen om het juiste aantal atomen toe te voegen aan de werkbank voor de gevraagde chemische structuur.`;
+
+            const workbench = document.createElement('div');
+            workbench.className = 'bg-slate-900/90 p-4 rounded-2xl border border-slate-800 flex justify-around items-center';
+
+            let counts = { H: 0, O: 0, C: 0 };
+
+            ['H', 'O', 'C'].forEach(atom => {
+                const atomBox = document.createElement('div');
+                atomBox.className = 'flex flex-col items-center space-y-2';
+                
+                const label = document.createElement('span');
+                label.className = 'text-xs text-gray-300 font-bold';
+                label.textContent = `Atoom ${atom}`;
+
+                const countDisp = document.createElement('span');
+                countDisp.className = 'text-2xl font-tech text-indigo-400 font-bold';
+                countDisp.textContent = '0';
+
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex gap-1.5';
+
+                const minusBtn = document.createElement('button');
+                minusBtn.className = 'w-8 h-8 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold border border-slate-700';
+                minusBtn.textContent = '-';
+                minusBtn.onclick = () => {
+                    if (counts[atom] > 0) {
+                        counts[atom]--;
+                        countDisp.textContent = counts[atom];
+                    }
+                };
+
+                const plusBtn = document.createElement('button');
+                plusBtn.className = 'w-8 h-8 bg-slate-800 hover:bg-indigo-700 text-white rounded-lg font-bold border border-slate-700';
+                plusBtn.textContent = '+';
+                plusBtn.onclick = () => {
+                    counts[atom]++;
+                    countDisp.textContent = counts[atom];
+                };
+
+                btnGroup.appendChild(minusBtn);
+                btnGroup.appendChild(plusBtn);
+
+                atomBox.appendChild(label);
+                atomBox.appendChild(countDisp);
+                atomBox.appendChild(btnGroup);
+                workbench.appendChild(atomBox);
+            });
+
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition text-base';
+            checkBtn.textContent = 'Controleer Molecuulbouw 🔬';
+            checkBtn.onclick = () => {
+                let correct = counts.H === currentQuestion.requiredAtoms.H &&
+                              counts.O === currentQuestion.requiredAtoms.O &&
+                              counts.C === currentQuestion.requiredAtoms.C;
+                handleAnswerResult(correct, checkBtn);
+            };
+
+            container.appendChild(instructions);
+            container.appendChild(workbench);
+            container.appendChild(checkBtn);
+            interactiveContent.appendChild(container);
+        }
+
+        function renderTimelinePuzzle() {
+            const container = document.createElement('div');
+            container.className = 'space-y-4';
+
+            const instructions = document.createElement('p');
+            instructions.className = 'text-xs text-gray-300 bg-slate-900/80 p-3 rounded-xl border border-slate-800';
+            instructions.textContent = 'Koppel bij elke historische gebeurtenis het juiste jaartal door op de knoppen te klikken.';
+
+            const listContainer = document.createElement('div');
+            listContainer.className = 'space-y-3';
+
+            let selections = {};
+            let allYears = currentQuestion.events.map(e => e.year);
+            shuffleArray(allYears);
+
+            currentQuestion.events.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3';
+                
+                const title = document.createElement('span');
+                title.className = 'text-sm text-gray-200 font-medium text-center sm:text-left';
+                title.textContent = item.event;
+
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex gap-2 flex-wrap justify-center';
+
+                allYears.forEach(yr => {
+                    const yrBtn = document.createElement('button');
+                    yrBtn.className = 'px-3 py-1.5 bg-slate-800 hover:bg-indigo-600 text-white rounded-xl text-xs font-tech font-bold transition border border-slate-700';
+                    yrBtn.textContent = yr;
+                    yrBtn.onclick = () => {
+                        btnGroup.querySelectorAll('button').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-400'));
+                        yrBtn.classList.add('bg-indigo-600', 'border-indigo-400');
+                        selections[index] = yr;
+                    };
+                    btnGroup.appendChild(yrBtn);
+                });
+
+                row.appendChild(title);
+                row.appendChild(btnGroup);
+                listContainer.appendChild(row);
+            });
+
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition text-base mt-2';
+            checkBtn.textContent = 'Controleer Tijdlijn 🏛️';
+            checkBtn.onclick = () => {
+                let allCorrect = true;
+                currentQuestion.events.forEach((item, idx) => {
+                    if (selections[idx] !== item.year) allCorrect = false;
+                });
+                handleAnswerResult(allCorrect, checkBtn);
+            };
+
+            container.appendChild(instructions);
+            container.appendChild(listContainer);
+            container.appendChild(checkBtn);
+            interactiveContent.appendChild(container);
+        }
+
+        function renderMatchPuzzle() {
+            const container = document.createElement('div');
+            container.className = 'space-y-4';
+
+            const instructions = document.createElement('p');
+            instructions.className = 'text-xs text-gray-300 bg-slate-900/80 p-3 rounded-xl border border-slate-800';
+            instructions.textContent = 'Selecteer voor elk land de juiste hoofdstad uit de lijst.';
+
+            const listContainer = document.createElement('div');
+            listContainer.className = 'space-y-3';
+
+            let selections = {};
+            let shuffledMatches = currentQuestion.pairs.map(p => p.match);
+            shuffleArray(shuffledMatches);
+
+            currentQuestion.pairs.forEach((pair, index) => {
+                const row = document.createElement('div');
+                row.className = 'p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3';
+                
+                const title = document.createElement('span');
+                title.className = 'text-sm text-gray-200 font-medium';
+                title.textContent = `Land: ${pair.item}`;
+
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex gap-2 flex-wrap justify-center';
+
+                shuffledMatches.forEach(matchVal => {
+                    const mBtn = document.createElement('button');
+                    mBtn.className = 'px-3.5 py-1.5 bg-slate-800 hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold transition border border-slate-700';
+                    mBtn.textContent = matchVal;
+                    mBtn.onclick = () => {
+                        btnGroup.querySelectorAll('button').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-400'));
+                        mBtn.classList.add('bg-indigo-600', 'border-indigo-400');
+                        selections[index] = matchVal;
+                    };
+                    btnGroup.appendChild(mBtn);
+                });
+
+                row.appendChild(title);
+                row.appendChild(btnGroup);
+                listContainer.appendChild(row);
+            });
+
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition text-base mt-2';
+            checkBtn.textContent = 'Controleer Koppelopdracht 🌍';
+            checkBtn.onclick = () => {
+                let allCorrect = true;
+                currentQuestion.pairs.forEach((pair, idx) => {
+                    if (selections[idx] !== pair.match) allCorrect = false;
+                });
+                handleAnswerResult(allCorrect, checkBtn);
+            };
+
+            container.appendChild(instructions);
+            container.appendChild(listContainer);
+            container.appendChild(checkBtn);
+            interactiveContent.appendChild(container);
+        }
+
+        function renderGraphPuzzle() {
+            const container = document.createElement('div');
+            container.className = 'space-y-4 text-center';
+
+            const info = document.createElement('p');
+            info.className = 'text-xs sm:text-sm text-gray-300';
+            info.innerHTML = `Verplaats de schuifregelaar om de juiste afgelegde afstand in meters in te stellen voor <b>t = ${currentQuestion.targetTime}s</b>:`;
+
+            const sliderContainer = document.createElement('div');
+            sliderContainer.className = 'bg-slate-900/90 p-5 rounded-2xl border border-slate-800 space-y-3';
+
+            const valueDisplay = document.createElement('div');
+            valueDisplay.className = 'text-3xl font-tech text-indigo-400 font-bold';
+            valueDisplay.textContent = '40 meter';
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = '0';
+            slider.max = '120';
+            slider.step = '5';
+            slider.value = '40';
+            slider.className = 'w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500';
+            
+            slider.oninput = () => {
+                valueDisplay.textContent = `${slider.value} meter`;
+            };
+
+            sliderContainer.appendChild(valueDisplay);
+            sliderContainer.appendChild(slider);
+
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition text-base';
+            checkBtn.textContent = 'Verifieer Grafiek Berekening 📈';
+            checkBtn.onclick = () => {
+                let val = parseInt(slider.value);
+                let diff = Math.abs(val - currentQuestion.targetDistance);
+                let correct = diff <= currentQuestion.correctTolerance;
+                handleAnswerResult(correct, checkBtn);
+            };
+
+            container.appendChild(info);
+            container.appendChild(sliderContainer);
+            container.appendChild(checkBtn);
+            interactiveContent.appendChild(container);
+        }
+
+        function renderOrderPuzzle() {
+            const container = document.createElement('div');
+            container.className = 'space-y-4';
+
+            let shuffledWords = [...currentQuestion.words];
+            shuffleArray(shuffledWords);
+
+            const poolBox = document.createElement('div');
+            poolBox.className = 'flex flex-wrap gap-2 justify-center p-3 bg-slate-950/80 rounded-2xl min-h-[55px] items-center border border-slate-800';
+            
+            const sentencePreview = document.createElement('div');
+            sentencePreview.className = 'p-3.5 bg-slate-900/90 rounded-xl text-center text-sm sm:text-base text-indigo-300 font-tech min-h-[50px] flex items-center justify-center border border-slate-800 flex-wrap gap-2';
+            
+            let currentSelected = [];
+
+            shuffledWords.forEach(word => {
+                const btn = document.createElement('button');
+                btn.className = 'px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border border-slate-700 text-xs sm:text-sm font-semibold shadow transition';
+                btn.textContent = word;
+                btn.onclick = () => {
+                    currentSelected.push(word);
+                    btn.disabled = true;
+                    btn.classList.add('opacity-40', 'cursor-not-allowed');
+                    renderSentence();
+                };
+                poolBox.appendChild(btn);
+            });
+
+            function renderSentence() {
+                sentencePreview.innerHTML = '';
+                if (currentSelected.length === 0) {
+                    sentencePreview.innerHTML = '<span class="text-gray-500 italic text-xs">Klik hierboven op de woorden om de zin te bouwen...</span>';
+                    return;
+                }
+                currentSelected.forEach((word) => {
+                    const tag = document.createElement('span');
+                    tag.className = 'px-3 py-1 bg-indigo-600/90 text-white rounded-xl text-xs sm:text-sm font-bold shadow flex items-center gap-1.5';
+                    tag.innerHTML = `<span>${word}</span>`;
+                    sentencePreview.appendChild(tag);
+                });
+            }
+
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'text-xs text-gray-400 hover:text-white underline block mx-auto transition';
+            resetBtn.textContent = 'Opnieuw beginnen';
+            resetBtn.onclick = () => {
+                interactiveContent.innerHTML = '';
+                renderOrderPuzzle();
+            };
+
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-lg transition text-base';
+            checkBtn.textContent = 'Controleer Zinsvolgorde 📝';
+            checkBtn.onclick = () => {
+                let isCorrect = currentSelected.length === currentQuestion.correctOrder.length &&
+                    currentSelected.every((val, index) => val === currentQuestion.correctOrder[index]);
+                handleAnswerResult(isCorrect, checkBtn);
+            };
+
+            container.appendChild(poolBox);
+            container.appendChild(sentencePreview);
+            container.appendChild(resetBtn);
+            container.appendChild(checkBtn);
+            interactiveContent.appendChild(container);
+            renderSentence();
+        }
+
+        // --- VALIDATIE & VOORTGANG ---
+
+        function handleAnswerResult(isCorrect, buttonElement) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            if (isCorrect) {
+                if(buttonElement && buttonElement.tagName === 'BUTTON') {
+                    buttonElement.classList.replace('bg-indigo-600', 'bg-emerald-600');
+                }
+                showFeedback("✓ CORRECTE CODE", "text-emerald-400");
+                
+                dialRotation += 36;
+                safeDial.style.transform = `rotate(${dialRotation}deg)`;
+                
+                document.getElementById(`light-${codesCracked}`).classList.add('active');
+                codesCracked++;
+
+                setTimeout(() => {
+                    isAnimating = false;
+                    if (codesCracked >= requiredCodes) {
+                        endGame(true);
+                    } else {
+                        loadNextQuestion();
+                    }
+                }, 750);
+
+            } else {
+                mistakes++;
+                if(buttonElement && buttonElement.tagName === 'BUTTON') {
+                    buttonElement.classList.replace('bg-indigo-600', 'bg-rose-600');
+                }
+                showFeedback("✕ ONJUIST (-15s)", "text-rose-400");
+                
+                safeWrapper.classList.add('shake-animation');
+                
+                gameTime -= 15;
+                if (gameTime < 0) gameTime = 0;
+                updateTimerDisplay();
+
+                setTimeout(() => {
+                    safeWrapper.classList.remove('shake-animation');
+                    isAnimating = false;
+                    if (gameTime === 0) {
+                        endGame(false);
+                    } else {
+                        loadNextQuestion();
+                    }
+                }, 900);
+            }
+        }
+
+        function showFeedback(text, colorClass) {
+            feedbackMessage.textContent = text;
+            feedbackMessage.className = `text-xs font-bold font-tech transition-opacity duration-300 ${colorClass}`;
+            feedbackMessage.style.opacity = 1;
+            
+            setTimeout(() => {
+                feedbackMessage.style.opacity = 0;
+            }, 800);
+        }
+
+        function endGame(won) {
+            clearInterval(timerInterval);
+            timerDisplay.classList.remove('timer-warning');
+
+            const title = document.getElementById('result-title');
+            const message = document.getElementById('result-message');
+            const resultScreen = document.getElementById('result-screen');
+
+            document.getElementById('stat-time').textContent = timerDisplay.textContent;
+            document.getElementById('stat-mistakes').textContent = mistakes;
+            document.getElementById('stat-diff').textContent = currentDifficulty;
+
+            let score = 0;
+
+            if (won) {
+                title.textContent = "KLUIS GEKRAAKT! 🎉";
+                title.className = "text-4xl sm:text-5xl font-extrabold mb-3 font-tech text-emerald-400";
+                message.textContent = "Fantastisch! Je hebt alle vragen en puzzels opgelost en de kluis geopend.";
+                resultScreen.style.borderColor = "rgba(34, 197, 94, 0.4)";
+                
+                let diffMultiplier = currentDifficulty === 'makkelijk' ? 1 : (currentDifficulty === 'gemiddeld' ? 1.5 : 2);
+                score = Math.floor(1000 + (gameTime * 2 * diffMultiplier) - (mistakes * 40));
+                if (score < 0) score = 0;
+                
+                saveScore(score);
+            } else {
+                title.textContent = "ALARM GEACTIVEERD! 🚨";
+                title.className = "text-4xl sm:text-5xl font-extrabold mb-3 font-tech text-rose-500";
+                message.textContent = "De tijd is verstreken of de beveiliging heeft ingegrepen. Probeer het opnieuw!";
+                resultScreen.style.borderColor = "rgba(239, 68, 68, 0.4)";
+                score = 0;
+            }
+            
+            document.getElementById('stat-score').textContent = score;
+            showScreen('result');
+        }
+        
+        function saveScore(score) {
+            const date = new Date();
+            const dateStr = `${date.getDate()}/${date.getMonth()+1} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+            
+            highscores.push({
+                score: score,
+                difficulty: currentDifficulty,
+                date: dateStr
+            });
+            
+            highscores.sort((a, b) => b.score - a.score);
+            if (highscores.length > 8) highscores = highscores.slice(0, 8);
+            
+            localStorage.setItem('kluiskrakerScoresNewV7', JSON.stringify(highscores));
+        }
+        
+        function renderScores() {
+            const list = document.getElementById('score-list');
+            list.innerHTML = '';
+            
+            if (highscores.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 italic text-center py-3 text-xs">Nog geen scores geregistreerd.</p>';
+                return;
+            }
+            
+            highscores.forEach((entry, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-2.5 bg-slate-950/80 rounded-xl border border-slate-800/80';
+                
+                let medal = '';
+                if (index === 0) medal = '🥇';
+                else if (index === 1) medal = '🥈';
+                else if (index === 2) medal = '🥉';
+                else medal = `<span class="w-5 inline-block text-center text-gray-400">${index+1}.</span>`;
+                
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2.5">
+                        <span class="text-sm">${medal}</span>
+                        <span class="text-xs text-gray-300 capitalize font-medium w-16">${entry.difficulty}</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-[11px] text-gray-400">${entry.date}</span>
+                        <span class="font-tech text-emerald-400 font-bold text-sm">${entry.score}</span>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        function clearScores() {
+            highscores = [];
+            localStorage.removeItem('kluiskrakerScoresNewV7');
+            renderScores();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+    </script>
+</body>
+</html>
