@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>🔐 Kluis Kraker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #06b6d4;
+            --primary-hover: #22d3ee;
+            --accent: #38bdf8;
+            --success: #4ade80;
+            --danger: #f43f5e;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(56, 189, 248, 0.2);
+            --glow-color: rgba(6, 182, 212, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 10%, rgba(6, 182, 212, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.1) 0%, transparent 50%);
+            color: var(--text-light);
+            text-align: center;
+            padding: 20px 15px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        section {
+            width: 100%;
+            max-width: 580px;
+            padding: 30px 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--glow-color);
+            transition: all 0.3s ease;
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #e2e8f0;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin: 20px 0;
+            text-align: left;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        label.section-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            background: #0f172a;
+            color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--primary-hover);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-card:hover {
+            border-color: var(--primary);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .checkbox-card input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            color: #0f172a;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-hover), #38bdf8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .antwoord {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+            padding: 14px 18px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .antwoord:hover:not(:disabled) {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .antwoord:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .antwoord.goed-gekozen {
+            background: rgba(74, 222, 128, 0.2) !important;
+            border-color: var(--success) !important;
+            color: var(--success) !important;
+        }
+
+        .antwoord.fout-gekozen {
+            background: rgba(244, 63, 94, 0.2) !important;
+            border-color: var(--danger) !important;
+            color: var(--danger) !important;
+        }
+
+        .verborgen {
+            display: none !important;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stats-item span {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        #timer {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--success);
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+        }
+
+        #vraag {
+            font-size: 1.15rem;
+            font-weight: 600;
+            line-height: 1.5;
+            margin: 20px 0;
+            color: #f1f5f9;
+        }
+
+        #feedback {
+            font-weight: 600;
+            margin: 15px 0;
+            min-height: 24px;
+            font-size: 0.95rem;
+        }
+
+        .feedback-goed {
+            color: var(--success);
+        }
+
+        .feedback-fout {
+            color: var(--danger);
+        }
+
+        #foutmelding {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        /* Score display */
+        .big-score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin: 15px 0;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🔐 Kluis Kraker</h1>
+
+    <section id="menu">
+        <h2>Breek in bij de Schoolbank</h2>
+        <p>Kraak 10 codes binnen 5 minuten!</p>
+
+        <div class="form-group">
+            <label class="section-label" for="niveau">Moeilijkheidsgraad</label>
+            <select id="niveau">
+                <option value="makkelijk">Makkelijk</option>
+                <option value="gemiddeld">Gemiddeld</option>
+                <option value="moeilijk">Moeilijk</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="section-label">Selecteer je vakken</label>
+            <div class="checkbox-grid">
+                <label class="checkbox-card"><input type="checkbox" value="wiskunde" checked> Wiskunde</label>
+                <label class="checkbox-card"><input type="checkbox" value="geschiedenis" checked> Geschiedenis</label>
+                <label class="checkbox-card"><input type="checkbox" value="aardrijkskunde" checked> Aardrijkskunde</label>
+                <label class="checkbox-card"><input type="checkbox" value="wetenschap" checked> Wetenschap</label>
+                <label class="checkbox-card"><input type="checkbox" value="taal" checked> Nederlands</label>
+                <label class="checkbox-card"><input type="checkbox" value="engels" checked> Engels (Of Course!)</label>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="startSpel()">Start Spel</button>
+        <p id="foutmelding"></p>
+    </section>
+
+    <section id="spel" class="verborgen">
+        <div class="stats-bar">
+            <div id="timer">05:00</div>
+            <div class="stats-item">Score: <span id="score">0</span></div>
+            <div class="stats-item">Voortgang: <span id="voortgang">0</span>/10</div>
+            <div class="stats-item">Fouten: <span id="fouten">0</span>/4</div>
+        </div>
+
+        <h2 id="vraag"></h2>
+        <div id="antwoorden"></div>
+        <p id="feedback"></p>
+        <button id="volgende" class="btn-primary verborgen" onclick="volgendeVraag()">
+            Volgende Vraag
+        </button>
+    </section>
+
+    <section id="resultaat" class="verborgen">
+        <h2 id="eindtitel"></h2>
+        <p id="eindbericht"></p>
+        <div class="big-score"><span id="eindscore">0</span> <span style="font-size:1rem; color:var(--text-muted)">pnt</span></div>
+        <button class="btn-primary" onclick="terugNaarMenu()">Opnieuw Spelen</button>
+    </section>
+
+    <script>
+        const vragen = [
+            { vak: "wiskunde", niveau: "makkelijk", vraag: "Hoeveel is 3 × 4?", antwoorden: ["7", "12", "15", "10"], goed: "12" },
+            { vak: "wiskunde", niveau: "gemiddeld", vraag: "Hoeveel is 15% van 200?", antwoorden: ["20", "25", "30", "35"], goed: "30" },
+            { vak: "wiskunde", niveau: "moeilijk", vraag: "Los op: 2x = 18.", antwoorden: ["6", "8", "9", "12"], goed: "9" },
+            { vak: "geschiedenis", niveau: "makkelijk", vraag: "In welk jaar begon de Tachtigjarige Oorlog?", antwoorden: ["1568", "1648", "1602", "1492"], goed: "1568" },
+            { vak: "geschiedenis", niveau: "gemiddeld", vraag: "In welk jaar werd de VOC opgericht?", antwoorden: ["1500", "1602", "1700", "1648"], goed: "1602" },
+            { vak: "geschiedenis", niveau: "moeilijk", vraag: "In welk jaar viel de Berlijnse Muur?", antwoorden: ["1979", "1989", "1991", "1999"], goed: "1989" },
+            { vak: "aardrijkskunde", niveau: "makkelijk", vraag: "Wat is de hoofdstad van Canada?", antwoorden: ["Toronto", "Ottawa", "Vancouver", "Montreal"], goed: "Ottawa" },
+            { vak: "aardrijkskunde", niveau: "gemiddeld", vraag: "Wat is de hoofdstad van Australië?", antwoorden: ["Sydney", "Melbourne", "Canberra", "Perth"], goed: "Canberra" },
+            { vak: "aardrijkskunde", niveau: "moeilijk", vraag: "Welke oceaan ligt tussen Afrika en Australië?", antwoorden: ["Atlantische", "Stille", "Indische", "Noordelijke IJszee"], goed: "Indische" },
+            { vak: "wetenschap", niveau: "makkelijk", vraag: "Bij welke temperatuur smelt ijs?", antwoorden: ["0 °C", "10 °C", "50 °C", "100 °C"], goed: "0 °C" },
+            { vak: "wetenschap", niveau: "gemiddeld", vraag: "Welke formule hoort bij de wet van Ohm?", antwoorden: ["U = I × R", "U = I + R", "U = I - R", "U = I / R"], goed: "U = I × R" },
+            { vak: "wetenschap", niveau: "moeilijk", vraag: "Uit welke atomen bestaat CO₂?", antwoorden: ["1 C en 2 O", "2 C en 1 O", "2 H en 1 O", "1 C en 1 O"], goed: "1 C en 2 O" },
+            { vak: "taal", niveau: "makkelijk", vraag: "Wat is het voltooid deelwoord van gebeuren?", antwoorden: ["Gebeurt", "Gebeurd", "Gabeurd", "Gebeurdt"], goed: "Gebeurd" },
+            { vak: "taal", niveau: "gemiddeld", vraag: "Welke zin is correct?", antwoorden: ["Wij hebben vandaag gewonnen.", "Wij vandaag hebben gewonnen.", "Vandaag gewonnen wij hebben.", "Hebben wij gewonnen vandaag."], goed: "Wij hebben vandaag gewonnen." },
+            { vak: "taal", niveau: "moeilijk", vraag: "Welke spelling is correct?", antwoorden: ["Onmiddelijk", "Onmiddellijk", "Onmidelijk", "Onmiddelijkk"], goed: "Onmiddellijk" },
+            { vak: "engels", niveau: "makkelijk", vraag: "[Woordenlijst] Wat betekent het Engelse woord 'schedule'?", antwoorden: ["Rooster / Planning", "Schoolvak", "Huiswerk", "Cijferlijst"], goed: "Rooster / Planning" },
+            { vak: "engels", niveau: "makkelijk", vraag: "[Zin samenstellen] Welke Engelse zin is grammaticaal correct?", antwoorden: ["She plays tennis every Saturday.", "She play tennis every Saturday.", "Plays she tennis every Saturday.", "Every Saturday tennis she plays."], goed: "She plays tennis every Saturday." },
+            { vak: "engels", niveau: "makkelijk", vraag: "[Grammatica] Kies de juiste optie: 'Yesterday, I ... my homework.'", antwoorden: ["finished", "have finished", "finishing", "finishes"], goed: "finished" },
+            { vak: "engels", niveau: "gemiddeld", vraag: "[Woordenlijst] Wat is de Engelse vertaling van 'uitvoeren / bereiken'?", antwoorden: ["to achieve", "to expect", "to fail", "to describe"], goed: "to achieve" },
+            { vak: "engels", niveau: "gemiddeld", vraag: "[Past Simple vs Present Perfect] Welke zin gebruikt de Present Perfect correct?", antwoorden: ["I have lived here for two years.", "I lived here since two years.", "I have live here for two years.", "I has lived here for two years."], goed: "I have lived here for two years." },
+            { vak: "engels", niveau: "gemiddeld", vraag: "[Zin samenstellen] Welke volgorde van de zin is correct?", antwoorden: ["They have already visited London twice.", "They London twice have already visited.", "Already they visited have London twice.", "Visited they have London twice already."], goed: "They have already visited London twice." },
+            { vak: "engels", niveau: "moeilijk", vraag: "[Past Simple vs Present Perfect] 'Look! Someone ... their keys.' (Resultaat in het heden)", antwoorden: ["has dropped", "dropped", "dropping", "was dropped"], goed: "has dropped" },
+            { vak: "engels", niveau: "moeilijk", vraag: "[Woordenlijst & Context] Wat is het juiste woord: 'The teacher gave us an ... assignment.'", antwoorden: ["additional", "ancient", "uncomfortable", "immediate"], goed: "additional" },
+            { vak: "engels", niveau: "moeilijk", vraag: "[Zin samenstellen] Welke complexe zin is grammaticaal correct?", antwoorden: ["Although it was raining, we decided to go outside.", "Although raining it was, we decided to outside go.", "We decided to go outside although was raining it.", "Although it were raining, we decided going outside."], goed: "Although it was raining, we decided to go outside." }
+        ];
+
+        // Cache DOM elements voor snellere performance
+        const dom = {
+            menu: document.getElementById("menu"),
+            spel: document.getElementById("spel"),
+            resultaat: document.getElementById("resultaat"),
+            niveau: document.getElementById("niveau"),
+            foutmelding: document.getElementById("foutmelding"),
+            vraag: document.getElementById("vraag"),
+            antwoorden: document.getElementById("antwoorden"),
+            feedback: document.getElementById("feedback"),
+            volgende: document.getElementById("volgende"),
+            score: document.getElementById("score"),
+            fouten: document.getElementById("fouten"),
+            voortgang: document.getElementById("voortgang"),
+            timer: document.getElementById("timer"),
+            eindtitel: document.getElementById("eindtitel"),
+            eindbericht: document.getElementById("eindbericht"),
+            eindscore: document.getElementById("eindscore")
+        };
+
+        let actieveVragen = [];
+        let nummer = 0;
+        let score = 0;
+        let fouten = 0;
+        let seconden = 300;
+        let timer;
+
+        function startSpel() {
+            const vakken = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            const niveau = dom.niveau.value;
+
+            if (vakken.length === 0) {
+                dom.foutmelding.textContent = "Kies minstens één vak!";
+                return;
+            }
+
+            // Snelle/geoptimaliseerde vragenfiltering & shuffle (Fisher-Yates)
+            actieveVragen = vragen.filter(v => vakken.includes(v.vak) && v.niveau === niveau);
+            if (actieveVragen.length < 10) {
+                actieveVragen = vragen.filter(v => vakken.includes(v.vak));
+            }
+
+            // Fisher-Yates shuffle algorithm (veel sneller en eerlijker dan .sort(Math.random))
+            for (let i = actieveVragen.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [actieveVragen[i], actieveVragen[j]] = [actieveVragen[j], actieveVragen[i]];
+            }
+            actieveVragen = actieveVragen.slice(0, 10);
+
+            if (actieveVragen.length === 0) {
+                dom.foutmelding.textContent = "Geen vragen beschikbaar voor deze keuzes.";
+                return;
+            }
+
+            nummer = 0;
+            score = 0;
+            fouten = 0;
+            seconden = 300;
+
+            dom.foutmelding.textContent = "";
+            dom.menu.classList.add("verborgen");
+            dom.resultaat.classList.add("verborgen");
+            dom.spel.classList.remove("verborgen");
+
+            werkSchermBij();
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                seconden--;
+                toonTijd();
+                if (seconden <= 0) eindigSpel(false);
+            }, 1000);
+
+            toonVraag();
+        }
+
+        function toonVraag() {
+            if (nummer >= actieveVragen.length) {
+                eindigSpel(true);
+                return;
+            }
+
+            const vraag = actieveVragen[nummer];
+            dom.vraag.textContent = `${nummer + 1}. ${vraag.vraag}`;
+            dom.feedback.textContent = "";
+            dom.feedback.className = "";
+            dom.volgende.classList.add("verborgen");
+
+            // Antwoorden husselen
+            const geshuffled = [...vraag.antwoorden];
+            for (let i = geshuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [geshuffled[i], geshuffled[j]] = [geshuffled[j], geshuffled[i]];
+            }
+
+            // Snelle DOM fragment opbouw
+            const fragment = document.createDocumentFragment();
+            geshuffled.forEach(antwoord => {
+                const knop = document.createElement("button");
+                knop.textContent = antwoord;
+                knop.className = "antwoord";
+                knop.onclick = () => controleerAntwoord(knop, antwoord === vraag.goed, vraag.goed);
+                fragment.appendChild(knop);
+            });
+
+            dom.antwoorden.innerHTML = "";
+            dom.antwoorden.appendChild(fragment);
+        }
+
+        function controleerAntwoord(gekozenKnop, isGoed, hetJuisteAntwoord) {
+            const knoppen = dom.antwoorden.querySelectorAll("button");
+            knoppen.forEach(k => {
+                k.disabled = true;
+                if (k.textContent === hetJuisteAntwoord) {
+                    k.classList.add("goed-gekozen");
+                }
+            });
+
+            if (isGoed) {
+                score += 100;
+                dom.feedback.textContent = "✨ Goed gedaan! Code gekraakt.";
+                dom.feedback.className = "feedback-goed";
+            } else {
+                gekozenKnop.classList.add("fout-gekozen");
+                fouten++;
+                seconden = Math.max(0, seconden - 15);
+                dom.feedback.textContent = `❌ Helaas! Het juiste antwoord was: ${hetJuisteAntwoord}`;
+                dom.feedback.className = "feedback-fout";
+            }
+
+            nummer++;
+            werkSchermBij();
+
+            if (fouten >= 4 || seconden <= 0) {
+                setTimeout(() => eindigSpel(false), 1200);
+                return;
+            }
+
+            dom.volgende.classList.remove("verborgen");
+        }
+
+        function volgendeVraag() {
+            toonVraag();
+        }
+
+        function werkSchermBij() {
+            dom.score.textContent = score;
+            dom.fouten.textContent = fouten;
+            dom.voortgang.textContent = nummer;
+            toonTijd();
+        }
+
+        function toonTijd() {
+            const min = Math.floor(seconden / 60);
+            const sec = seconden % 60;
+            dom.timer.textContent = `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+        }
+
+        function eindigSpel(gewonnen) {
+            clearInterval(timer);
+            dom.spel.classList.add("verborgen");
+            dom.resultaat.classList.remove("verborgen");
+
+            dom.eindtitel.textContent = gewonnen ? "🔓 Kluis gekraakt!" : "🚨 Missie mislukt!";
+            dom.eindbericht.textContent = gewonnen
+                ? "Gefeliciteerd! Je hebt alle beveiligingscodes succesvol omzeild."
+                : "De beveiliging heeft de kluis vergrendeld vanwege te veel fouten of tijdgebrek.";
+            dom.eindscore.textContent = score;
+        }
+
+        function terugNaarMenu() {
+            clearInterval(timer);
+            dom.resultaat.classList.add("verborgen");
+            dom.menu.classList.remove("verborgen");
+        }
+    </script>
+</body>
+</html>
